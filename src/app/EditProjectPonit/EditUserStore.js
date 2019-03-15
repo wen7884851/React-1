@@ -23,6 +23,8 @@ class EditUserStore extends Component{
         }
     }
 
+    
+
     UpdateInit(userStore){
         this.setState({UserId:userStore.UserId,
             StoreFund:userStore.storeFund,
