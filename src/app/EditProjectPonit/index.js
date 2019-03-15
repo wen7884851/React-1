@@ -5,6 +5,8 @@ import PointUserStoreList from './PointUserStoreList';
 import DeleteUserStore from './DeleteUserStore';
 import DeleteProjectPoint from './DeleteProjectPoint';
 import EditUserStore from './EditUserStore';
+import ChoiceModalForm from '../../components/modal/choiceModalForm';
+import MessageModal from '../../components/modal/MessageModal';
 import axios from 'axios';
 
 class EditProjectPonit extends Component{
@@ -13,7 +15,11 @@ class EditProjectPonit extends Component{
         editUserStoreModal:false,
         deleteUserStoreModal:false,
         deleteProjectPointModal:false,
+        savePointModal:false,
         Commission:0,
+        errorMessageHeader:'',
+        errorMessageContent:'',
+        errorMessageModal:false,
     }
 
     componentDidMount(){
@@ -53,6 +59,33 @@ class EditProjectPonit extends Component{
          });
     }
 
+    editPointOpenModal=(point)=>{
+        this.setState({point:point,savePointModal:true});
+    }
+
+    updatePoint=()=>{
+        let point=this.state.point;
+        axios.post('/Project/ProjectPointManager/CreateProjectPoint',point).then(data=>{
+                if(data.data&&data.data.IsSuccess){
+                    this.setState({savePointModal:false});
+                }else{
+                    this.setState({errorMessageHeader:'系统错误',errorMessageModal:true,errorMessageContent:data.data.Result,savePointModal:false});
+                }
+            });
+    }
+
+    createPoint=()=>{
+        let point=this.state.point;
+        axios.post('/Project/projectmanager/CreateProjectPoint',point).then(data=>{
+                if(data.data&&data.data.IsSuccess){
+                    window.location.href="/project/projectmanager/EditProjectPonit?projectId="+point.projectId+'&ponitId='+data.data.Result;
+                }
+                else{
+                    this.setState({errorMessageModal:true,errorMessageHeader:'系统错误',errorMessageContent:data.data.Result,savePointModal:false});
+                }
+            });
+    }
+
     createUserStore=()=>{
         this.setState({editUserStoreModal:true,currentStoreId:0});
     }
@@ -69,13 +102,6 @@ class EditProjectPonit extends Component{
         this.setState({deleteProjectPointModal:true});
     }
 
-    createPoint=()=>{
-       var projectPoint={PointName:this.state.PointName,ProjectTypeId:this.state.ProjectTypeId,ProfessionalTypeId:this.state.ProfessionalTypeId,PointLeader:this.state.PointLeader,PonitContent:this.state.PonitContent,
-        PointProportion:this.state.PointProportion,ManagementProportion:this.state.ManagementProportion,AuditProportion:this.state.AuditProportion,JudgementProportion:this.state.JudgementProportion,
-        PointFund:this.state.PointFund,Commission:this.state.Commission};
-        this.setState({projectPoint:projectPoint})
-    }
-
     Cancle=()=>{
         window.location.href='/project/projectmanager/ProjectProfile?projectId='+this.state.projectId;
     }
@@ -83,8 +109,8 @@ class EditProjectPonit extends Component{
     render(){
         if(this.state.isEdit&&this.state.point){
             return (<div>
-                <Header as='h2' icon='database' content={this.state.point.PointName}/>
-                <EditPoint IsEdit={true} Cancle={this.Cancle} point={this.state.point}/>
+                <Header as='h2' icon='database' content={this.state.point.PointName} submit={this.editPointOpenModal}/>
+                <EditPoint IsEdit={true} Cancle={this.Cancle} />
                     <div style={{float:'right',paddingTop:'10px',paddingBottom:'10px',paddingRight:'50px'}}>
                     <Button color='red' onClick={this.deleteProjectPoint}>删除项目细项</Button></div>
                     <div style={{float:'right',paddingTop:'10px',paddingBottom:'10px',paddingRight:'50px'}}>
@@ -93,6 +119,8 @@ class EditProjectPonit extends Component{
                     <Button color='green' onClick={this.CreatePoint}>保存</Button></div>
                     <div style={{float:'right',paddingTop:'10px',paddingBottom:'10px',paddingRight:'50px'}}>
                     <Button color='green' onClick={this.createUserStore}>添加项目成员</Button></div>
+                <ChoiceModalForm header='修改项目点' content='请确认是否保存修改内容!' visble={this.state.savePointModal} 
+                size='mini' cancle={()=>this.setState({savePointModal:false})} submit={this.updatePoint}/>
                 <PointUserStoreList userStoreList={this.state.userStoreList} totleCount={this.state.totleCount} queryHandle={this.getUserStoreList}
                 editUserStore={this.editUserStore} deleteUserStore={this.deleteUserStore} pagelimit={10} columns={this.getProjectTableColumns()}/>
                 <DeleteProjectPoint closeModal={()=>this.setState({deleteProjectPointModal:false})} 
@@ -101,12 +129,19 @@ class EditProjectPonit extends Component{
                 userStore={this.state.currentStoreId} visble={this.state.deleteUserStoreModal}/>
                 <EditUserStore closeModal={()=>this.setState({editUserStoreModal:false})} queryHandle={this.getUserStoreList} 
                 pointId={this.state.pointId} userStore={this.state.currentStoreId} visble={this.state.editUserStoreModal} ponitFund={this.state.point.PointFund}/>
+                <MessageModal header={this.state.errorMessageHeader} content={this.state.errorMessageContent} visble={this.state.errorMessageModal}
+                size='mini' Ok={()=>{this.setState({errorMessageModal:false})}}/>
                 </div>
             );
         }
         return(<div>
         <Header as='h2' icon='database' content='新增项目细项'/>
-        <EditPoint IsEdit={false} CreatePoint={this.createPoint} Cancle={this.Cancle} /></div>);
+        <EditPoint IsEdit={false} CreatePoint={this.createPoint} Cancle={this.Cancle} submit={this.editPointOpenModal}/>
+        <ChoiceModalForm header='修改项目点' content='请确认是否保存修改内容!' visble={this.state.savePointModal} 
+        size='mini' cancle={()=>this.setState({savePointModal:false})} submit={this.createPoint}/>
+        <MessageModal header={this.state.errorMessageHeader} content={this.state.errorMessageContent} visble={this.state.errorMessageModal}
+        size='mini' Ok={()=>{this.setState({errorMessageModal:false})}}/></div>);
+        
     }
 
     getProjectTableColumns=()=>([

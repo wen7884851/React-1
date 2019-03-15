@@ -60,12 +60,14 @@ class LoginContent extends Component{
               window.location.href=e.data.Result;
               return;
             }
+            else{
             this.setState({
               showMessage:true,
               messagecontent:e.data.Result,
               userName:'',
               password:''
             });
+          }
             if(e.data.message)
             {
               this.setState({

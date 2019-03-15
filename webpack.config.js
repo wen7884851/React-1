@@ -21,6 +21,7 @@ module.exports = {
           extensions: ['.js', '.jsx', '.ts', '.tsx', '.css', '.less']
         },
         entry: {
+          login:'./page/login/index.jsx',
             project:'./page/project/index.jsx',
             projectPointManager:'./page/ProjectPointManager/index.jsx',
             EditProjectPonit:'./page/EditProjectPonit/index.jsx',

@@ -47,20 +47,28 @@ class EditPoint extends Component{
     CreatePoint=()=>{
         if(this.checkCreate()){
             let projectId=this.getParam('projectId');
-            axios.post('/Project/projectmanager/CreateProjectPoint',{ProjectId:projectId,ProjectTypeId:this.state.ProjectTypeId,
+            let point={ProjectId:projectId,ProjectTypeId:this.state.ProjectTypeId,
                 ProfessionalType:this.state.ProfessionalTypeId,PointName:this.state.PointName,
                 PointFund:this.state.PointFund,PonitContent:this.state.PonitContent,PointLeader:this.state.PointLeader,
                 ManagementProportion:this.state.ManagementProportion,AuditProportion:this.state.AuditProportion,
-                JudgementProportion:this.state.JudgementProportion,PointProportion:this.state.PointProportion}).then(data=>{
-                    if(data.data&&data.data.IsSuccess){
-                        window.location.href="/project/projectmanager/EditProjectPonit?projectId="+projectId+'&ponitId='+data.data.Result;
-                    }else{
-                        let message='创建失败！'+(typeof(data.data) === "undefined")?'':data.data.Result
-                        this.setState({errorMessageContent:message,errorMessageVisble:''});
-                    }
-                });
+                JudgementProportion:this.state.JudgementProportion,PointProportion:this.state.PointProportion};
+            this.props.submit(point);
         }
     }
+
+    UpdatePoint=()=>{
+        if(this.checkCreate()){
+            let pointId=this.getParam('ponitId');
+            let point={Id:pointId,ProjectTypeId:this.state.ProjectTypeId,
+                ProfessionalType:this.state.ProfessionalTypeId,PointName:this.state.PointName,
+                PointFund:this.state.PointFund,PonitContent:this.state.PonitContent,PointLeader:this.state.PointLeader,
+                ManagementProportion:this.state.ManagementProportion,AuditProportion:this.state.AuditProportion,
+                JudgementProportion:this.state.JudgementProportion,PointProportion:this.state.PointProportion};
+            this.props.submit(point);  
+        }
+    }
+
+    
 
     checkCreate(){
         let isChecked=true;
@@ -150,9 +158,10 @@ class EditPoint extends Component{
     getProjectPointInfo(pointId){
         axios.post("/Project/ProjectManager/GetProjectPonitById",{pointId:pointId}).then(data=>{
             let point=data.data;
+            console.log(point);
             this.setState({
                 PointName:point.PointName,
-                ProjectType:point.ProjectTypeId,
+                ProjectTypeId:point.ProjectTypeId,
                 ProfessionalTypeId:point.ProfessionalType,
                 PointLeader:point.PointLeader,
                 PonitContent:point.PonitContent,
@@ -168,29 +177,28 @@ class EditPoint extends Component{
 
     render(){
         if(this.props.IsEdit){
-            let point=this.props.point;
             return (
             <div>
             <Form>
                 <Form.Group widths='equal'>
-                    <Form.Input label='细项名称' placeholder='细项名称...' name='PointName' onChange={this.handleChange} defaultValue={point.PointName}></Form.Input>
-                    <Form.Select label='项目类别' placeholder='项目类别...' options={this.state.ProjectType} name='ProjectTypeId'  defaultValue={point.ProjectTypeId} onChange={this.selectChage}></Form.Select>
-                    <Form.Select label='专业类别' placeholder='专业类别...' name='ProfessionalTypeId' options={this.state.ProfessionalType} defaultValue={point.ProfessionalType} onChange={this.selectChage}></Form.Select>
-                    <Form.Select label='负责人' placeholder='负责人...' name='PointLeader'  options={this.state.UserList} defaultValue={point.PointLeader} onChange={this.selectChage}></Form.Select>
+                    <Form.Input label='细项名称' placeholder='细项名称...' name='PointName' onChange={this.handleChange} defaultValue={this.state.PointName}></Form.Input>
+                    <Form.Select label='项目类别' placeholder='项目类别...' options={this.state.ProjectType} name='ProjectTypeId'  defaultValue={this.state.ProjectTypeId} onChange={this.selectChage}></Form.Select>
+                    <Form.Select label='专业类别' placeholder='专业类别...' name='ProfessionalTypeId' options={this.state.ProfessionalType} defaultValue={this.state.ProfessionalTypeId} onChange={this.selectChage}></Form.Select>
+                    <Form.Select label='负责人' placeholder='负责人...' name='PointLeader'  options={this.state.UserList} defaultValue={this.state.PointLeader} onChange={this.selectChage}></Form.Select>
                 </Form.Group>
-                <Form.TextArea label='项目内容介绍' placeholder='项目内容介绍...' name='PonitContent' onChange={this.handleChange} defaultValue={point.PonitContent}></Form.TextArea>
+                <Form.TextArea label='项目内容介绍' placeholder='项目内容介绍...' name='PonitContent' onChange={this.handleChange} defaultValue={this.state.PonitContent}></Form.TextArea>
                 <Form.Group widths='equal'>
-                    <Form.Input label='专业系数' placeholder='专业系数...' name='PointProportion' onChange={this.handleNumCheckChange} defaultValue={point.PointProportion}></Form.Input>
-                    <Form.Input label='管理系数' placeholder='管理系数...' name='ManagementProportion' onChange={this.handleNumCheckChange} defaultValue={point.ManagementProportion} ></Form.Input>
-                    <Form.Input label='审核系数' placeholder='审核系数...' name='AuditProportion' onChange={this.handleNumCheckChange} defaultValue={point.AuditProportion} ></Form.Input>
-                    <Form.Input label='审定系数' placeholder='审定系数...' name='JudgementProportion' onChange={this.handleNumCheckChange} defaultValue={point.JudgementProportion} ></Form.Input>
+                    <Form.Input label='专业系数' placeholder='专业系数...' name='PointProportion' onChange={this.handleNumCheckChange} defaultValue={this.state.PointProportion}></Form.Input>
+                    <Form.Input label='管理系数' placeholder='管理系数...' name='ManagementProportion' onChange={this.handleNumCheckChange} defaultValue={this.state.ManagementProportion} ></Form.Input>
+                    <Form.Input label='审核系数' placeholder='审核系数...' name='AuditProportion' onChange={this.handleNumCheckChange} defaultValue={this.state.AuditProportion} ></Form.Input>
+                    <Form.Input label='审定系数' placeholder='审定系数...' name='JudgementProportion' onChange={this.handleNumCheckChange} defaultValue={this.state.JudgementProportion} ></Form.Input>
                 </Form.Group>
                 <Form.Group widths='20'>
                     <Form.Field width='5'>
                          <label >项目总造价</label>
                          <Input label={{ basic: true, content: '万元' }}
                          name='PointFund'
-                         defaultValue={point.PointFund}
+                         defaultValue={this.state.PointFund}
                          onChange={this.handleNumCheckChange}
                          labelPosition='right'
                          placeholder='项目总造价...'
@@ -200,7 +208,7 @@ class EditPoint extends Component{
                     <div style={{float:"left",paddingLeft:'30px',paddingRight:'10px',paddingTop:'30px',fontWeight:'bold'}}>
                         <label >提成金额:</label></div>
                         <div style={{float:"left",paddingLeft:'20px',paddingTop:'33px'}}>
-                        <Header as='h4' color='red' content={point.Commission} /></div>
+                        <Header as='h4' color='red' content={this.state.Commission} /></div>
                     </Form.Field>
                     <Form.Field width='2'>
                     <div style={{paddingTop:'25px'}}>
@@ -211,7 +219,7 @@ class EditPoint extends Component{
                     <div style={{float:'right',paddingTop:'30px',paddingRight:'50px'}}>
                     <Button color='red' onClick={this.props.Cancle}>返回</Button></div>
                     <div style={{float:'right',paddingTop:'30px',paddingRight:'50px'}}>
-                    <Button color='green' onClick={this.props.CreatePoint}>修改保存</Button></div>
+                    <Button color='green' onClick={this.UpdatePoint}>修改保存</Button></div>
                    </Form.Field >
                 </Form.Group>
             </Form>

@@ -5,4 +5,4 @@ import LoginPage from "../../app/Login/index";
 import 'semantic-ui-css/semantic.css';
 
 
-ReactDOM.render(<LoginPage />, document.getElementById('root'));
+ReactDOM.render(<LoginPage />, document.getElementById('login'));
