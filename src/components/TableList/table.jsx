@@ -4,8 +4,6 @@ import {Table,Pagination,Icon,Advertisement} from 'semantic-ui-react';
 class TablePage extends React.Component{
 
     formatCol = (item, col) => {
-        console.log(col.dataIndex);
-        console.log(item[col.dataIndex]);
         let content = col.render ? col.render(item[col.dataIndex]?item[col.dataIndex]:"", item) : item[col.dataIndex];
         if (col.render) {
           return <Table.Cell>{content}</Table.Cell>;

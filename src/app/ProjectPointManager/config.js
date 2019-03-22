@@ -24,7 +24,7 @@ const getProjectPointTableColumns=()=>([
     title: '项目细项',
     dataIndex: 'PointName',
     render:(value,item)=>{
-        return <a href={`/project/projectmanager/EditProjectPonit?projectId=${item.ProjectId}&ponitId=${item.Id}`}>{LimitText(value,30)}</a>
+        return <a href={`/project/projectmanager/EditProjectPoint?projectId=${item.ProjectId}&pointId=${item.Id}`}>{LimitText(value,30)}</a>
     }
 },
 {

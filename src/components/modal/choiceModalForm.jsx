@@ -10,7 +10,7 @@ class ChoiceModalForm extends Component{
               <p>{content}</p>
             </Modal.Content>
             <Modal.Actions>
-              <Button negative onClick={cancle}>取消</Button>
+              <Button negative onClick={cancle} >取消</Button>
               <Button positive icon='checkmark' labelPosition='right' content='确定' onClick={submit} loading={loading}/>
             </Modal.Actions>
           </Modal>)

@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import EditProjectPonit from '../../app/EditProjectPonit/index'
+import EditProjectPoint from '../../app/EditProjectPoint/index'
 import 'semantic-ui-css/semantic.css';
 
 
-ReactDOM.render(<EditProjectPonit />
+ReactDOM.render(<EditProjectPoint />
 , document.getElementById('root'));

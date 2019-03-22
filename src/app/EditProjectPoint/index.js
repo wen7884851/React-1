@@ -1,16 +1,17 @@
 import React, { Component } from 'react';
 import EditPoint from './EditPoint';
 import {Button,Header} from 'semantic-ui-react';
-import PointUserStoreList from './PointUserStoreList';
 import DeleteUserStore from './DeleteUserStore';
 import DeleteProjectPoint from './DeleteProjectPoint';
 import EditUserStore from './EditUserStore';
 import ChoiceModalForm from '../../components/modal/choiceModalForm';
 import MessageModal from '../../components/modal/MessageModal';
+import TablePage from '../../components/TableList/table';
 import axios from 'axios';
 
-class EditProjectPonit extends Component{
+class EditProjectPoint extends Component{
     state={
+        pointId:0,
         isEdit:false,
         editUserStoreModal:false,
         deleteUserStoreModal:false,
@@ -20,42 +21,49 @@ class EditProjectPonit extends Component{
         errorMessageHeader:'',
         errorMessageContent:'',
         errorMessageModal:false,
+        submitLoading:false,
+        totleCount:0,
+        currentPageIndex:1
     }
 
     componentDidMount(){
         this.init();   
     }
 
-   async getProjectPointInfo(pointId){
+      getProjectPointInfo(pointId){
         axios.post("/Project/ProjectManager/GetProjectPonitById",{pointId:pointId}).then(data=>{
-           this.setState({point:data.data})
+           this.setState({point:data.data,projectId:data.data.projectId,pointId:pointId})
         });
     }
 
 
     init(){
-        let ponitId=this.getParam('ponitId');
+        let pointId=this.getParam('pointId');
         let projectId=this.getParam('projectId');
-        if(ponitId){
-            this.getProjectPointInfo(ponitId);
-            this.setState({ponitId:ponitId,projectId:projectId});
-            this.getUserStoreList(1);
-            this.setState({isEdit:true});
+        if(pointId){
+            this.getProjectPointInfo(pointId);
+            this.getUserStoreList();
+            this.setState({isEdit:true,projectPointTableColumns:this.getUserStoreTableColumns()});
         }
         else{
             this.setState({userStoreList:this.getUserStoreList,projectId:projectId})
         }
     }
 
-    getUserStoreList(pageIndex){
-        var ponitId=this.state.ponitId;
+     getUserStoreList=()=>{
+        let pointId=this.state.pointId;
+        if(pointId || pointId === 0){
+            pointId= this.getParam('pointId');
+        }
+        let pageIndex=this.state.currentPageIndex;
+        console.log(this.state);
         if(pageIndex&&pageIndex<1)
         {
             pageIndex=1;
         }
         //查询
-        axios.post("/Project/ProjectUserStore/GetUserStoreListByQuery",{query:{PointId:ponitId,PageIndex:pageIndex}}).then(data=>{
-            this.setState({userStoreList:data.data,totleCount:data.totleCount})
+        axios.post("/Project/ProjectUserStore/GetUserStoreListByQuery",{query:{PointId:pointId,PageIndex:pageIndex}}).then(data=>{
+            this.setState({userStoreList:data.data,totleCount:data.data.TotalItemsCount})
          });
     }
 
@@ -65,70 +73,69 @@ class EditProjectPonit extends Component{
 
     updatePoint=()=>{
         let point=this.state.point;
-        axios.post('/Project/ProjectPointManager/CreateProjectPoint',point).then(data=>{
+        this.setState({submitLoading:true});
+        axios.post('/Project/ProjectPointManager/UpdateProjectPoint',point).then(data=>{
                 if(data.data&&data.data.IsSuccess){
                     this.setState({savePointModal:false});
                 }else{
                     this.setState({errorMessageHeader:'系统错误',errorMessageModal:true,errorMessageContent:data.data.Result,savePointModal:false});
                 }
+                this.setState({submitLoading:false});
             });
     }
 
     createPoint=()=>{
         let point=this.state.point;
-        axios.post('/Project/projectmanager/CreateProjectPoint',point).then(data=>{
+        this.setState({submitLoading:true});
+        axios.post('/Project/ProjectPointManager/CreateProjectPoint',point).then(data=>{
                 if(data.data&&data.data.IsSuccess){
-                    window.location.href="/project/projectmanager/EditProjectPonit?projectId="+point.projectId+'&ponitId='+data.data.Result;
+                    window.location.href='/project/projectmanager/EditProjectPonit?pointId='+data.data.Result;
                 }
                 else{
                     this.setState({errorMessageModal:true,errorMessageHeader:'系统错误',errorMessageContent:data.data.Result,savePointModal:false});
                 }
+                this.setState({submitLoading:false});
             });
     }
 
-    createUserStore=()=>{
-        this.setState({editUserStoreModal:true,currentStoreId:0});
+    deleteUserStore=()=>{
+        axios.post('/Project/ProjectUserStore/DeleteUserStore',{storeId:this.state.currentStoreId}).then(data=>{
+            if(data.data&&data.data.IsSuccess){
+                this.getUserStoreList();
+            }
+            else{
+                this.setState({errorMessageModal:true,errorMessageHeader:'系统错误',errorMessageContent:data.data.Result,savePointModal:false});
+            }
+        });
+        this.setState({deleteUserStoreModal:false});
     }
 
-    editUserStore=(e)=>{
-        this.setState({editUserStoreModal:true,currentStoreId:e.target.id});
-    }
-
-    deleteUserStore=(e)=>{
-        this.setState({deleteUserStoreModal:true,currentStoreId:e.target.id});
+    deleteUserStoreOpenModel=(e)=>{
+        this.setState({deleteUserStoreModal:true,currentStoreId:parseInt(e.target.id)});
+        console.log(e.target.id);
     }
 
     deleteProjectPoint=()=>{
         this.setState({deleteProjectPointModal:true});
     }
 
-    Cancle=()=>{
-        window.location.href='/project/projectmanager/ProjectProfile?projectId='+this.state.projectId;
-    }
-
     render(){
         if(this.state.isEdit&&this.state.point){
             return (<div>
-                <Header as='h2' icon='database' content={this.state.point.PointName} submit={this.editPointOpenModal}/>
-                <EditPoint IsEdit={true} Cancle={this.Cancle} />
+                <Header as='h2' icon='database' content={this.state.point.PointName} />
+                <EditPoint IsEdit={true} submit={this.editPointOpenModal}/>
                     <div style={{float:'right',paddingTop:'10px',paddingBottom:'10px',paddingRight:'50px'}}>
                     <Button color='red' onClick={this.deleteProjectPoint}>删除项目细项</Button></div>
                     <div style={{float:'right',paddingTop:'10px',paddingBottom:'10px',paddingRight:'50px'}}>
-                    <Button color='red' onClick={this.Cancle}>返回</Button></div>
-                    <div style={{float:'right',paddingTop:'10px',paddingBottom:'10px',paddingRight:'50px'}}>
-                    <Button color='green' onClick={this.CreatePoint}>保存</Button></div>
-                    <div style={{float:'right',paddingTop:'10px',paddingBottom:'10px',paddingRight:'50px'}}>
-                    <Button color='green' onClick={this.createUserStore}>添加项目成员</Button></div>
+                    <EditUserStore queryHandle={this.getUserStoreList} ponitFund={this.state.point.PointFund} pointId={this.state.pointId}/></div>
                 <ChoiceModalForm header='修改项目点' content='请确认是否保存修改内容!' visble={this.state.savePointModal} 
-                size='mini' cancle={()=>this.setState({savePointModal:false})} submit={this.updatePoint}/>
-                <PointUserStoreList userStoreList={this.state.userStoreList} totleCount={this.state.totleCount} queryHandle={this.getUserStoreList}
-                editUserStore={this.editUserStore} deleteUserStore={this.deleteUserStore} pagelimit={10} columns={this.getProjectTableColumns()}/>
+                size='mini' submit={this.updatePoint} loading={this.state.submitLoading} cancle={()=>this.setState({savePointModal:false})}/>
+                <TablePage dataSource={this.state.userStoreList} columns={this.state.projectPointTableColumns} pageIndex={this.state.currentPageIndex}
+                 pagelimit={10} totleCount={this.state.totleCount} pageChange={(val) => {this.setState({currentPageIndex:val});this.getUserStoreList();}}/>
                 <DeleteProjectPoint closeModal={()=>this.setState({deleteProjectPointModal:false})} 
-                ponitId={this.state.ponitId} loading='' visble={this.state.deleteProjectPointModal}/>
-                <DeleteUserStore closeModal={()=>this.setState({deleteUserStoreModal:false})} queryHandle={()=>this.getUserStoreList(this.state.pageIndex)} 
-                userStore={this.state.currentStoreId} visble={this.state.deleteUserStoreModal}/>
-                <EditUserStore closeModal={()=>this.setState({editUserStoreModal:false})} queryHandle={this.getUserStoreList} 
-                pointId={this.state.pointId} userStore={this.state.currentStoreId} visble={this.state.editUserStoreModal} ponitFund={this.state.point.PointFund}/>
+                pointId={this.state.pointId} loading='' visble={this.state.deleteProjectPointModal}/>
+                <DeleteUserStore closeModal={()=>this.setState({deleteUserStoreModal:false})}
+                 visble={this.state.deleteUserStoreModal} deleteUserStore={this.deleteUserStore}/>
                 <MessageModal header={this.state.errorMessageHeader} content={this.state.errorMessageContent} visble={this.state.errorMessageModal}
                 size='mini' Ok={()=>{this.setState({errorMessageModal:false})}}/>
                 </div>
@@ -136,20 +143,21 @@ class EditProjectPonit extends Component{
         }
         return(<div>
         <Header as='h2' icon='database' content='新增项目细项'/>
-        <EditPoint IsEdit={false} CreatePoint={this.createPoint} Cancle={this.Cancle} submit={this.editPointOpenModal}/>
+        <EditPoint IsEdit={false} CreatePoint={this.createPoint} submit={this.editPointOpenModal}/>
         <ChoiceModalForm header='修改项目点' content='请确认是否保存修改内容!' visble={this.state.savePointModal} 
-        size='mini' cancle={()=>this.setState({savePointModal:false})} submit={this.createPoint}/>
+        size='mini' submit={this.createPoint} loading={this.state.submitLoading} cancle={()=>this.setState({savePointModal:false})}/>
         <MessageModal header={this.state.errorMessageHeader} content={this.state.errorMessageContent} visble={this.state.errorMessageModal}
         size='mini' Ok={()=>{this.setState({errorMessageModal:false})}}/></div>);
         
     }
 
-    getProjectTableColumns=()=>([
+    getUserStoreTableColumns=()=>([
         {
             title: '项目成员',
             dataIndex: 'UserName',
             render:(value,item)=>{
-                return <a href='#' id={item.Id} onClick={this.editUserStore.bind()}>{value}</a>
+                return <EditUserStore userStoreId={item.Id} queryHandle={this.getUserStoreList} 
+                ponitFund={this.state.point.PointFund} modalName={value} pointId={this.state.pointId}/>
             }
         },
         {
@@ -186,7 +194,7 @@ class EditProjectPonit extends Component{
             render:(value,item)=>{
                 if(value)
                 {
-                    return <a href='#' id={item.Id} onClick={this.deleteUserStore.bind()}>删除</a>
+                    return <a href='#' id={item.Id} onClick={this.deleteUserStoreOpenModel.bind()}>删除</a>
                 }
                 return '无操作';
             }
@@ -211,4 +219,4 @@ class EditProjectPonit extends Component{
         if(r!=null)return  unescape(r[2]); return null;
     }
 }
-export default EditProjectPonit
+export default EditProjectPoint

@@ -10,6 +10,7 @@ class EditPoint extends Component{
         UserList:[],
         Commission:"0  元",
         errorMessageVisble:'true',
+        projectId:0,
         PointName:'',
         ProjectTypeId:0,
         ProfessionalTypeId:0,
@@ -58,7 +59,7 @@ class EditPoint extends Component{
 
     UpdatePoint=()=>{
         if(this.checkCreate()){
-            let pointId=this.getParam('ponitId');
+            let pointId=this.getParam('pointId');
             let point={Id:pointId,ProjectTypeId:this.state.ProjectTypeId,
                 ProfessionalType:this.state.ProfessionalTypeId,PointName:this.state.PointName,
                 PointFund:this.state.PointFund,PonitContent:this.state.PonitContent,PointLeader:this.state.PointLeader,
@@ -149,7 +150,7 @@ class EditPoint extends Component{
         this.getUserList();
         this.getProjectType();
         this.setState({ProfessionalType:this.getProfessionalType()});
-        let pointId=this.getParam('ponitId');
+        let pointId=this.getParam('pointId');
         if(pointId){
             this.getProjectPointInfo(pointId);
         }
@@ -158,8 +159,8 @@ class EditPoint extends Component{
     getProjectPointInfo(pointId){
         axios.post("/Project/ProjectManager/GetProjectPonitById",{pointId:pointId}).then(data=>{
             let point=data.data;
-            console.log(point);
             this.setState({
+                projectId:point.ProjectId,
                 PointName:point.PointName,
                 ProjectTypeId:point.ProjectTypeId,
                 ProfessionalTypeId:point.ProfessionalType,
@@ -173,6 +174,10 @@ class EditPoint extends Component{
                 Commission:point.Commission+'  元'
             });
         });
+    }
+
+    Cancle=()=>{
+        window.location.href='/project/projectmanager/ProjectProfile?projectId='+this.state.projectId;
     }
 
     render(){
@@ -217,7 +222,7 @@ class EditPoint extends Component{
                     <Message negative content={this.state.errorMessageContent} hidden={this.state.errorMessageVisble}/>
                     <Form.Field width='10'>
                     <div style={{float:'right',paddingTop:'30px',paddingRight:'50px'}}>
-                    <Button color='red' onClick={this.props.Cancle}>返回</Button></div>
+                    <Button color='red' onClick={this.Cancle}>返回</Button></div>
                     <div style={{float:'right',paddingTop:'30px',paddingRight:'50px'}}>
                     <Button color='green' onClick={this.UpdatePoint}>修改保存</Button></div>
                    </Form.Field >
@@ -264,7 +269,7 @@ class EditPoint extends Component{
                 <Message negative content={this.state.errorMessageContent} hidden={this.state.errorMessageVisble}/>
                 <Form.Field width='5'>
                 <div style={{float:'right',paddingTop:'30px',paddingRight:'50px'}}>
-                <Button color='red' onClick={this.props.Cancle}>返回</Button></div>
+                <Button color='red' onClick={this.Cancle}>返回</Button></div>
                 <div style={{float:'right',paddingTop:'30px',paddingRight:'50px'}}>
                 <Button color='green' onClick={this.CreatePoint}>创建</Button></div></Form.Field >
             </Form.Group>
@@ -272,7 +277,7 @@ class EditPoint extends Component{
     }
 
     getProjectType(){
-        axios.get('/Project/ProjectCalculation/GetProjectType').then(data=>{
+        axios.post('/Project/ProjectCalculation/GetProjectType').then(data=>{
             this.setState({ProjectType:data.data});
         });
     }
